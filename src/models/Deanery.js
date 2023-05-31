@@ -12,7 +12,12 @@ const Deanery = sequelize.define("Deanery", {
   Name: {
     type: DataTypes.STRING,
   },
-
+  MeetingDay: {
+    type: DataTypes.STRING,
+  },
+  Time: {
+    type: DataTypes.STRING,
+  },
   Email: {
     type: DataTypes.STRING,
     allowNull: true,
