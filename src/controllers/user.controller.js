@@ -46,6 +46,7 @@ exports.createUser = (req, res, next) => {
             LastName,
             PhoneNumber,
             Password: hashedPassword,
+            DeaneryId,
           })
             .then((user) => {
               jwt.sign(
