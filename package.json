@@ -16,6 +16,9 @@
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^3.3.3",
     "nodemon": "^2.0.22",
-    "sequelize": "^6.31.1"
-  }
+    "sequelize": "^6.31.1",
+    "uuid": "^9.0.1"
+  },
+  "keywords": [],
+  "description": ""
 }

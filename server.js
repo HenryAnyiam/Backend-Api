@@ -6,6 +6,7 @@ const sequelize = require("./src/config/db.config");
 const userRoutes = require("./src/routes/user.routes");
 const rolesRoutes = require("./src/routes/roles.routes");
 
+
 const app = express();
 const PORT = 5000;
 app.use(require("body-parser"));

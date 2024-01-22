@@ -1,10 +1,14 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
+const Role = require('./Role');
+const Deanery = require('./Deanery');
+const Parish = require('./Parish');
 
-const User = sequelize.define("user", {
+
+const User = sequelize.define("User", {
   Id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
@@ -25,7 +29,10 @@ const User = sequelize.define("user", {
     require: true,
   },
 
-  Password: { type: DataTypes.STRING, allowNull: false },
+  Password: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
 
   BaptismalName: {
     type: DataTypes.STRING,
@@ -36,11 +43,13 @@ const User = sequelize.define("user", {
   IsActive: {
     type: DataTypes.BOOLEAN,
   },
-  Deanery: {
-    type: DataTypes.STRING,
+  DeaneryId: {
+    type: DataTypes.UUID,
+    allowNull: false,
   },
-  Parish: {
-    type: DataTypes.STRING,
+  ParishId: {
+    type: DataTypes.UUID,
+    allowNull: false,
   },
   MembershipId: {
     type: DataTypes.STRING,
@@ -52,7 +61,8 @@ const User = sequelize.define("user", {
     type: DataTypes.DATE,
   },
   RoleId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: false,
   },
   Password: {
     type: DataTypes.STRING,
@@ -61,5 +71,14 @@ const User = sequelize.define("user", {
     type: DataTypes.STRING,
   },
 });
+
+Role.hasMany(User, { foreignKey: 'RoleId' });
+User.belongsTo(Role);
+
+Deanery.hasMany(User, { foreignKey: 'DeaneryId' });
+User.belongsTo(Deanery);
+
+Parish.hasMany(User, { foreignKey: 'ParishId' });
+User.belongsTo(Parish);
 
 module.exports = User;

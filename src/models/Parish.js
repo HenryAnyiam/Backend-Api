@@ -1,8 +1,9 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
+const Deanery = require('./Deanery');
 
 
-const Event = sequelize.define("Event", {
+const Parish = sequelize.define("Parish", {
   Id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -12,27 +13,30 @@ const Event = sequelize.define("Event", {
 
   Name: {
     type: DataTypes.STRING,
+    allowNull: false,
   },
 
-  Description: {
+  MeetingDay: {
     type: DataTypes.STRING,
-    allowNull: false
   },
-  BannerImage: {
+
+  Time: {
     type: DataTypes.STRING,
-    allowNull: true
   },
-  Date: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  IsActive: {
-    type: DataTypes.BOOLEAN
-  },
-  Venue: {
+
+  Email: {
     type: DataTypes.STRING,
-    allowNull: true
+    allowNull: true,
   },
+
+  DeaneryId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+
 });
 
-module.exports = Event;
+Deanery.hasMany(Parish, { foreignKey: 'DeaneryId' });
+Parish.belongsTo(Deanery);
+
+module.exports = Deanery;

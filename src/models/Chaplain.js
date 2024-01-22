@@ -1,10 +1,12 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
+const Deanery = require('./Deanery')
+
 
 const Chaplain = sequelize.define("Chaplain", {
   Id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
@@ -14,7 +16,7 @@ const Chaplain = sequelize.define("Chaplain", {
   },
 
   DeaneryId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false
   },
   Image: {
@@ -22,5 +24,8 @@ const Chaplain = sequelize.define("Chaplain", {
     allowNull: true
   },
 });
+
+Deanery.hasMany(Chaplain, { foreignKey: 'DeaneryId' });
+Chaplain.belongsTo(Deanery);
 
 module.exports = Chaplain;
