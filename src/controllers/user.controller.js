@@ -1,10 +1,32 @@
 const jwt = require('jsonwebtoken');
 const User = require("../models/User");
+const Deanery = require("../models/Deanery");
+const Parish = require("../models/Parish");
 const bcrypt = require('bcrypt');
+
 const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getUser = (req, res, next) => {
-  User.findAll()
+  User.findAll({
+    attributes: [
+      'Id',
+      'FirstName',
+      'LastName',
+      'PhoneNumber',
+      ],
+    include: [
+      {
+      model: Deanery,
+      attributes: ['Name'],
+      as: 'Deanery'
+    },
+    {
+      model: Parish,
+      attributes: ['Name'],
+      as: 'Parish'
+    },
+  ],
+})
     .then((user) => {
       res.status(200).json(user);
     })
@@ -60,10 +82,37 @@ exports.createUser = (req, res, next) => {
                 AUTH_SECRET_KEY,
                 { expiresIn: "5h" },
                 (err, token) => {
-                  res.status(200).json({
-                    token,
-                    user,
-                  });
+                  User.findOne({
+                    where: {
+                      Id: user.Id
+                    },
+                    attributes: [
+                      'Id',
+                      'FirstName',
+                      'LastName',
+                      'PhoneNumber',
+                      ],
+                    include: [
+                      {
+                      model: Deanery,
+                      attributes: ['Name'],
+                      as: 'Deanery'
+                    },
+                    {
+                      model: Parish,
+                      attributes: ['Name'],
+                      as: 'Parish'
+                    }
+                  ]
+                  })
+                    .then((newUser) => {
+                      res.status(200).json({
+                        token, newUser
+                      })
+                    })
+                    .catch((err) => {
+                      res.status(400).json({ msg: err.message})
+                    })
                 }
               );
             })
@@ -86,7 +135,25 @@ exports.loginUser = (req, res, next) => {
     User.findOne({
       where: {
         Email,
-      }
+      },
+        attributes: [
+          'Id',
+          'FirstName',
+          'LastName',
+          'PhoneNumber',
+          ],
+        include: [
+          {
+          model: Deanery,
+          attributes: ['Name'],
+          as: 'Deanery'
+        },
+        {
+          model: Parish,
+          attributes: ['Name'],
+          as: 'Parish'
+        }
+      ]
     })
       .then((user) => {
         if (user) {

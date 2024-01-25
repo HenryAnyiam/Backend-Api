@@ -19,6 +19,7 @@ const Chaplain = sequelize.define("Chaplain", {
     type: DataTypes.UUID,
     allowNull: false
   },
+  
   Image: {
     type: DataTypes.STRING,
     allowNull: true

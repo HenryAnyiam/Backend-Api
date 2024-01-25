@@ -10,6 +10,7 @@ exports.getDeaneries = (req, res, next) => {
     .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 };
 
+
 exports.createDeanery = (req, res, next) => {
   console.log(req.body, "see");
   const { Name, MeetingDay, Time, Email, RoleId} =
@@ -55,4 +56,53 @@ exports.createDeanery = (req, res, next) => {
               res.status(403).json({ msg: "Action Not Allowed" });
             }
           })
+}
+
+
+exports.getParishes = (req, res, next) => {
+  console.log(req.params);
+  Deanery.findOne({
+    where: {
+      Id: req.params.deaneryId
+    }
+  })
+    .then((deanery) => {
+    deanery.getParishes({
+      attributes: [
+        'Id',
+        'Name',
+        'Email',
+        ],
+    })
+      .then((parishes) => {
+        res.status(200).json(parishes);
+      })
+      .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+  })
+  .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+}
+
+
+exports.getUsers = (req, res, next) => {
+  console.log(req.params);
+  Deanery.findOne({
+    where: {
+      Id: req.params.deaneryId
+    }
+  })
+    .then((deanery) => {
+      deanery.getUsers({
+        attributes: [
+          'Id',
+          'FirstName',
+          'LastName',
+          'PhoneNumber',
+          ],
+      })
+        .then((users) => {
+          res.status(200).json(users);
+        })
+        .catch((err) => res.status(400).json({ msg: "No Users failed", error: err }));
+  })
+  .catch((err) => res.status(400).json({ msg: "No deanery failed", error: err }));
 }
