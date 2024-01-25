@@ -1,17 +1,19 @@
+const jwt = require('jsonwebtoken');
 const User = require("../models/User");
-const AUTH_SECRET_KEY = "CYONLAGOSAYD2023";
+const bcrypt = require('bcrypt');
+const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getUser = (req, res, next) => {
   User.findAll()
     .then((user) => {
-      res.json(user);
+      res.status(200).json(user);
     })
-    .catch((err) => res.json({ msg: "failed", error: err }));
+    .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 };
 
 exports.createUser = (req, res, next) => {
   console.log(req.body, "see");
-  const { FirstName, LastName, Email, Password, PhoneNumber, DeaneryId } =
+  const { FirstName, LastName, Email, Password, PhoneNumber, DeaneryId, ParishId, RoleId } =
     req?.body;
   if (
     !FirstName ||
@@ -19,7 +21,9 @@ exports.createUser = (req, res, next) => {
     !Email ||
     !Password ||
     !PhoneNumber ||
-    !DeaneryId
+    !DeaneryId ||
+    !ParishId ||
+    !RoleId
   ) {
     res.status(400).json({ msg: "All Fields are required" });
   } else {
@@ -31,12 +35,12 @@ exports.createUser = (req, res, next) => {
 
       .then((emailExist) => {
         if (emailExist) {
-          res.status(400).json({ msg: "Email already exist" });
+          res.status(400).json({ msg: "Email already exists" });
         } else {
           let hashedPassword;
           try {
             const salt = bcrypt.genSaltSync(10);
-            hashedPassword = bcrypt.hashSync(password, salt);
+            hashedPassword = bcrypt.hashSync(Password, salt);
           } catch (error) {
             throw error;
           }
@@ -47,6 +51,8 @@ exports.createUser = (req, res, next) => {
             PhoneNumber,
             Password: hashedPassword,
             DeaneryId,
+            ParishId,
+            RoleId
           })
             .then((user) => {
               jwt.sign(
@@ -54,14 +60,14 @@ exports.createUser = (req, res, next) => {
                 AUTH_SECRET_KEY,
                 { expiresIn: "5h" },
                 (err, token) => {
-                  return res.status(200).json({
+                  res.status(200).json({
                     token,
                     user,
                   });
                 }
               );
             })
-            .catch((err) => res.json({ msg: err.message || "Not created" }));
+            .catch((err) => res.status(400).json({ msg: err.message || "Not created" }));
         }
       })
 
@@ -70,3 +76,42 @@ exports.createUser = (req, res, next) => {
       });
   }
 };
+
+
+exports.loginUser = (req, res, next) => {
+  console.log(req.body, "see");
+  const { Email, Password } =
+  req?.body;
+  if ( Email && Password) {
+    User.findOne({
+      where: {
+        Email,
+      }
+    })
+      .then((user) => {
+        if (user) {
+          let correctPassword;
+          correctPassword = bcrypt.compareSync(Password, user.Password);
+          if (correctPassword) {
+            jwt.sign(
+              { id: user.id },
+              AUTH_SECRET_KEY,
+              { expiresIn: "5h" },
+              (err, token) => {
+                res.status(200).json({
+                  token,
+                  user,
+                });
+              }
+            );
+          } else {
+            res.status(401).json({ msg: "Incorrect Password"})
+          }
+        } else {
+          res.status(400).json({ msg: "User does not Exist"})
+        }
+  })    
+  } else {
+    res.status(400).json({ msg: "Bad Request" });
+  }
+}

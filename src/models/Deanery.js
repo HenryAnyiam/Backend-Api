@@ -23,6 +23,8 @@ const Deanery = sequelize.define("Deanery", {
   Email: {
     type: DataTypes.STRING,
     allowNull: true,
+    unique: true,
+    require: true,
   },
 });
 

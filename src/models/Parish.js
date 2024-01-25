@@ -26,7 +26,9 @@ const Parish = sequelize.define("Parish", {
 
   Email: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
+    unique: true,
+    require: true,
   },
 
   DeaneryId: {
@@ -39,4 +41,4 @@ const Parish = sequelize.define("Parish", {
 Deanery.hasMany(Parish, { foreignKey: 'DeaneryId' });
 Parish.belongsTo(Deanery);
 
-module.exports = Deanery;
+module.exports = Parish;
