@@ -78,7 +78,8 @@ exports.createUser = (req, res, next) => {
           })
             .then((user) => {
               jwt.sign(
-                { id: user.id },
+                { Id: user.Id,
+                  RoleId: user.RoleId },
                 AUTH_SECRET_KEY,
                 { expiresIn: "5h" },
                 (err, token) => {
@@ -106,8 +107,10 @@ exports.createUser = (req, res, next) => {
                   ]
                   })
                     .then((newUser) => {
+                      newUser['token'] = token;
                       res.status(200).json({
-                        token, newUser
+                        User: newUser,
+                        token
                       })
                     })
                     .catch((err) => {

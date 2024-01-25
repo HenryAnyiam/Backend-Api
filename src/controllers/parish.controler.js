@@ -1,6 +1,9 @@
 const Parish = require("../models/Parish");
 const Role = require("../models/Role");
+const jwt = require('jsonwebtoken');
 const Deanery = require("../models/Deanery");
+
+const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getParishes = (req, res, next) => {
   Parish.findAll({
@@ -25,16 +28,26 @@ exports.getParishes = (req, res, next) => {
 
 exports.createParish = (req, res, next) => {
   console.log(req.body, "see");
-  const { Name, MeetingDay, Time, Email, RoleId, DeaneryId} =
+  const { Name, MeetingDay, Time, Email, DeaneryId} =
   req?.body;
+  let token = req.headers.token;
+  let roleId;
   if (
     Email &&
-    Name && RoleId &&
+    Name && 
     DeaneryId
-    )
+    ) {
+      jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
+        if (err) {
+          res.status(403).json({ msg: "Action Not Allowed" });
+        } else {
+          const { Id, RoleId } = decoded;
+          roleId = RoleId;
+        }
+      });
     Role.findOne({
       where: {
-        Id: RoleId
+        Id: roleId
       }
     })
       .then((roleExists) => {
@@ -73,7 +86,7 @@ exports.createParish = (req, res, next) => {
                           }]
                         })
                           .then((newParish) => {
-                            res.status(200).json({newParish});
+                            res.status(200).json({Parish: newParish});
                           })
                           .catch((err) => {
                             res.status(400).json({ msg: err.message});
@@ -91,6 +104,7 @@ exports.createParish = (req, res, next) => {
               res.status(403).json({ msg: "Action Not Allowed" });
             }
           })
+}
 }
 
 

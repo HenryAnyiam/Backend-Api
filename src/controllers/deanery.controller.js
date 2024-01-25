@@ -1,6 +1,8 @@
 const Deanery = require("../models/Deanery");
 const Role = require("../models/Role");
+const jwt = require('jsonwebtoken');
 
+const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getDeaneries = (req, res, next) => {
   Deanery.findAll()
@@ -13,15 +15,25 @@ exports.getDeaneries = (req, res, next) => {
 
 exports.createDeanery = (req, res, next) => {
   console.log(req.body, "see");
-  const { Name, MeetingDay, Time, Email, RoleId} =
+  const { Name, MeetingDay, Time, Email} =
   req?.body;
+  let token = req.headers.token;
+  let roleId;
   if (
     Email &&
-    Name && RoleId
-    )
+    Name
+    ) {
+      jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
+        if (err) {
+          res.status(403).json({ msg: "Action Not Allowed" });
+        } else {
+          const { Id, RoleId } = decoded;
+          roleId = RoleId;
+        }
+      });
     Role.findOne({
       where: {
-        Id: RoleId
+        Id: roleId
       }
     })
       .then((roleExists) => {
@@ -56,7 +68,8 @@ exports.createDeanery = (req, res, next) => {
               res.status(403).json({ msg: "Action Not Allowed" });
             }
           })
-}
+        }
+      }
 
 
 exports.getParishes = (req, res, next) => {
