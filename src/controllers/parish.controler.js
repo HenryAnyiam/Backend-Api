@@ -31,18 +31,18 @@ exports.createParish = (req, res, next) => {
   const { Name, MeetingDay, Time, Email, DeaneryId} =
   req?.body;
   let token = req.headers.token;
-  let roleId;
+  let roleId = "0";
   if (
     Email &&
     Name && 
     DeaneryId
     ) {
       jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-        if (err) {
-          res.status(403).json({ msg: "Action Not Allowed" });
-        } else {
+        if (!(err) && decoded) {
           const { Id, RoleId } = decoded;
-          roleId = RoleId;
+          if (RoleId  !== undefined) {
+            roleId = RoleId;
+          }
         }
       });
     Role.findOne({
@@ -86,7 +86,7 @@ exports.createParish = (req, res, next) => {
                           }]
                         })
                           .then((newParish) => {
-                            res.status(200).json({Parish: newParish});
+                            res.status(200).json(newParish);
                           })
                           .catch((err) => {
                             res.status(400).json({ msg: err.message});
@@ -121,6 +121,7 @@ exports.getUsers = (req, res, next) => {
         'FirstName',
         'LastName',
         'PhoneNumber',
+        'Email',
         ],
     })
       .then((users) => {

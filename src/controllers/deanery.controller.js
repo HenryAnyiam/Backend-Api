@@ -18,18 +18,18 @@ exports.createDeanery = (req, res, next) => {
   const { Name, MeetingDay, Time, Email} =
   req?.body;
   let token = req.headers.token;
-  let roleId;
+  let roleId = "0";
   if (
     Email &&
     Name
     ) {
       jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-        if (err) {
-          res.status(403).json({ msg: "Action Not Allowed" });
-        } else {
+        if (!(err) && decoded) {
           const { Id, RoleId } = decoded;
-          roleId = RoleId;
-        }
+          if (RoleId) {
+            roleId = RoleId;
+          }
+        } 
       });
     Role.findOne({
       where: {
@@ -54,7 +54,7 @@ exports.createDeanery = (req, res, next) => {
                         Email,
                     })
                       .then((deanery) => {
-                        res.status(200).json({deanery})
+                        res.status(200).json(deanery)
                       })
                       .catch((err) => {
                         res.status(400).json({ msg: err.message || "Not created" })
@@ -110,12 +110,13 @@ exports.getUsers = (req, res, next) => {
           'FirstName',
           'LastName',
           'PhoneNumber',
+          'Email'
           ],
       })
         .then((users) => {
           res.status(200).json(users);
         })
-        .catch((err) => res.status(400).json({ msg: "No Users failed", error: err }));
+        .catch((err) => res.status(400).json({ msg: "Failed", error: err }));
   })
-  .catch((err) => res.status(400).json({ msg: "No deanery failed", error: err }));
+  .catch((err) => res.status(400).json({ msg: "Failed", error: err }));
 }

@@ -13,6 +13,7 @@ exports.getUser = (req, res, next) => {
       'FirstName',
       'LastName',
       'PhoneNumber',
+      'Email',
       ],
     include: [
       {
@@ -92,6 +93,7 @@ exports.createUser = (req, res, next) => {
                       'FirstName',
                       'LastName',
                       'PhoneNumber',
+                      'Email'
                       ],
                     include: [
                       {
@@ -109,8 +111,14 @@ exports.createUser = (req, res, next) => {
                     .then((newUser) => {
                       newUser['token'] = token;
                       res.status(200).json({
-                        User: newUser,
-                        token
+                        Token: token,
+                        Id: newUser.Id,
+                        FirstName: newUser.FirstName,
+                        LastName: newUser.LastName,
+                        Email: newUser.Email,
+                        PhoneNumber: newUser.PhoneNumber,
+                        Deanery: newUser.Deanery.Name,
+                        Parish: newUser.Parish.Name,
                       })
                     })
                     .catch((err) => {
@@ -144,6 +152,7 @@ exports.loginUser = (req, res, next) => {
           'FirstName',
           'LastName',
           'PhoneNumber',
+          'Email',
           ],
         include: [
           {
@@ -169,8 +178,14 @@ exports.loginUser = (req, res, next) => {
               { expiresIn: "5h" },
               (err, token) => {
                 res.status(200).json({
-                  token,
-                  user,
+                  Token: token,
+                  Id: user.Id,
+                  FirstName: user.FirstName,
+                  LastName: user.LastName,
+                  Email: user.Email,
+                  PhoneNumber: user.PhoneNumber,
+                  Deanery: user.Deanery.Name,
+                  Parish: user.Parish.Name,
                 });
               }
             );
