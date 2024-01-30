@@ -1,17 +1,42 @@
+const jwt = require('jsonwebtoken');
 const User = require("../models/User");
-const AUTH_SECRET_KEY = "CYONLAGOSAYD2023";
+const Deanery = require("../models/Deanery");
+const Parish = require("../models/Parish");
+const bcrypt = require('bcrypt');
+
+const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getUser = (req, res, next) => {
-  User.findAll()
+  User.findAll({
+    attributes: [
+      'Id',
+      'FirstName',
+      'LastName',
+      'PhoneNumber',
+      'Email',
+      ],
+    include: [
+      {
+      model: Deanery,
+      attributes: ['Name'],
+      as: 'Deanery'
+    },
+    {
+      model: Parish,
+      attributes: ['Name'],
+      as: 'Parish'
+    },
+  ],
+})
     .then((user) => {
-      res.json(user);
+      res.status(200).json(user);
     })
-    .catch((err) => res.json({ msg: "failed", error: err }));
+    .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 };
 
 exports.createUser = (req, res, next) => {
   console.log(req.body, "see");
-  const { FirstName, LastName, Email, Password, PhoneNumber, DeaneryId } =
+  const { FirstName, LastName, Email, Password, PhoneNumber, DeaneryId, ParishId, RoleId } =
     req?.body;
   if (
     !FirstName ||
@@ -19,7 +44,9 @@ exports.createUser = (req, res, next) => {
     !Email ||
     !Password ||
     !PhoneNumber ||
-    !DeaneryId
+    !DeaneryId ||
+    !ParishId ||
+    !RoleId
   ) {
     res.status(400).json({ msg: "All Fields are required" });
   } else {
@@ -31,12 +58,12 @@ exports.createUser = (req, res, next) => {
 
       .then((emailExist) => {
         if (emailExist) {
-          res.status(400).json({ msg: "Email already exist" });
+          res.status(400).json({ msg: "Email already exists" });
         } else {
           let hashedPassword;
           try {
             const salt = bcrypt.genSaltSync(10);
-            hashedPassword = bcrypt.hashSync(password, salt);
+            hashedPassword = bcrypt.hashSync(Password, salt);
           } catch (error) {
             throw error;
           }
@@ -47,21 +74,60 @@ exports.createUser = (req, res, next) => {
             PhoneNumber,
             Password: hashedPassword,
             DeaneryId,
+            ParishId,
+            RoleId
           })
             .then((user) => {
               jwt.sign(
-                { id: user.id },
+                { Id: user.Id,
+                  RoleId: user.RoleId },
                 AUTH_SECRET_KEY,
                 { expiresIn: "5h" },
                 (err, token) => {
-                  return res.status(200).json({
-                    token,
-                    user,
-                  });
+                  User.findOne({
+                    where: {
+                      Id: user.Id
+                    },
+                    attributes: [
+                      'Id',
+                      'FirstName',
+                      'LastName',
+                      'PhoneNumber',
+                      'Email'
+                      ],
+                    include: [
+                      {
+                      model: Deanery,
+                      attributes: ['Name'],
+                      as: 'Deanery'
+                    },
+                    {
+                      model: Parish,
+                      attributes: ['Name'],
+                      as: 'Parish'
+                    }
+                  ]
+                  })
+                    .then((newUser) => {
+                      newUser['token'] = token;
+                      res.status(200).json({
+                        Token: token,
+                        Id: newUser.Id,
+                        FirstName: newUser.FirstName,
+                        LastName: newUser.LastName,
+                        Email: newUser.Email,
+                        PhoneNumber: newUser.PhoneNumber,
+                        Deanery: newUser.Deanery.Name,
+                        Parish: newUser.Parish.Name,
+                      })
+                    })
+                    .catch((err) => {
+                      res.status(400).json({ msg: err.message})
+                    })
                 }
               );
             })
-            .catch((err) => res.json({ msg: err.message || "Not created" }));
+            .catch((err) => res.status(400).json({ msg: err.message || "Not created" }));
         }
       })
 
@@ -70,3 +136,67 @@ exports.createUser = (req, res, next) => {
       });
   }
 };
+
+
+exports.loginUser = (req, res, next) => {
+  console.log(req.body, "see");
+  const { Email, Password } =
+  req?.body;
+  if ( Email && Password) {
+    User.findOne({
+      where: {
+        Email,
+      },
+        attributes: [
+          'Id',
+          'FirstName',
+          'LastName',
+          'PhoneNumber',
+          'Email',
+          ],
+        include: [
+          {
+          model: Deanery,
+          attributes: ['Name'],
+          as: 'Deanery'
+        },
+        {
+          model: Parish,
+          attributes: ['Name'],
+          as: 'Parish'
+        }
+      ]
+    })
+      .then((user) => {
+        if (user) {
+          let correctPassword;
+          correctPassword = bcrypt.compareSync(Password, user.Password);
+          if (correctPassword) {
+            jwt.sign(
+              { id: user.id },
+              AUTH_SECRET_KEY,
+              { expiresIn: "5h" },
+              (err, token) => {
+                res.status(200).json({
+                  Token: token,
+                  Id: user.Id,
+                  FirstName: user.FirstName,
+                  LastName: user.LastName,
+                  Email: user.Email,
+                  PhoneNumber: user.PhoneNumber,
+                  Deanery: user.Deanery.Name,
+                  Parish: user.Parish.Name,
+                });
+              }
+            );
+          } else {
+            res.status(401).json({ msg: "Incorrect Password"})
+          }
+        } else {
+          res.status(400).json({ msg: "User does not Exist"})
+        }
+  })    
+  } else {
+    res.status(400).json({ msg: "Bad Request" });
+  }
+}
