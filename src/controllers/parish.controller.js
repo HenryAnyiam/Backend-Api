@@ -1,22 +1,22 @@
-const Parish = require("../models/Parish");
-const Role = require("../models/Role");
+const Parish = require("../models/parish.model");
+const Role = require("../models/role.model");
 const jwt = require('jsonwebtoken');
-const Deanery = require("../models/Deanery");
+const Deanery = require("../models/deanery.model");
 
 const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getParishes = (req, res, next) => {
   Parish.findAll({
     attributes: [
-      'Id',
-      'Name',
-      'Email',
+      'id',
+      'name',
+      'email',
       ],
     include: [
       {
       model: Deanery,
-      attributes: ['Name'],
-      as: 'Deanery'
+      attributes: ['name'],
+      as: 'deanery'
     }]
   })
     .then((parishes) => {
@@ -28,33 +28,36 @@ exports.getParishes = (req, res, next) => {
 
 exports.createParish = (req, res, next) => {
   console.log(req.body, "see");
-  const { Name, MeetingDay, Time, Email, DeaneryId} =
+  const { name, meetingDay, time, email, deaneryId, location, } =
   req?.body;
   let token = req.headers.token;
-  let roleId = "0";
+  let role = "0";
   if (
-    Email &&
-    Name && 
-    DeaneryId
+    email &&
+    name && 
+    deaneryId &&
+    location &&
+    meetingDay &&
+    time
     ) {
       jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
         if (!(err) && decoded) {
-          const { Id, RoleId } = decoded;
-          if (RoleId  !== undefined) {
-            roleId = RoleId;
+          const { id, roleId } = decoded;
+          if (roleId  !== undefined) {
+            role = roleId;
           }
         }
       });
     Role.findOne({
       where: {
-        Id: roleId
+        id: role
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.Name !== "Member") {
+        if (roleExists && roleExists.name !== "Member") {
           Parish.findOne({
               where: {
-                  Email,
+                  email,
               },
           })
             .then((emailExists) => {
@@ -62,27 +65,30 @@ exports.createParish = (req, res, next) => {
                     res.status(400).json({ msg: "Email already exists" });
                   } else {
                     Parish.create({
-                        Name,
-                        MeetingDay,
-                        Time,
-                        Email,
-                        DeaneryId
+                        name,
+                        meetingDay,
+                        time,
+                        email,
+                        deaneryId,
+                        location
                     })
                       .then((parish) => {
                         Parish.findOne({
                           where: {
-                            Id: parish.Id
+                            id: parish.id
                           },
                           attributes: [
-                            'Id',
-                            'Name',
-                            'Email',
+                            'id',
+                            'name',
+                            'email',
+                            'time',
+                            'location'
                             ],
                           include: [
                             {
                             model: Deanery,
-                            attributes: ['Name'],
-                            as: 'Deanery'
+                            attributes: ['name'],
+                            as: 'deanery'
                           }]
                         })
                           .then((newParish) => {
@@ -111,17 +117,17 @@ exports.createParish = (req, res, next) => {
 exports.getUsers = (req, res, next) => {
   Parish.findOne({
     where: {
-      Id: req.params.parishId
+      id: req.params.parishId
     }
   })
     .then((parish) => {
     parish.getUsers({
       attributes: [
-        'Id',
-        'FirstName',
-        'LastName',
-        'PhoneNumber',
-        'Email',
+        'id',
+        'firstName',
+        'lastName',
+        'phoneNumber',
+        'email',
         ],
     })
       .then((users) => {

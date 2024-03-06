@@ -3,18 +3,18 @@ const sequelize = require("../config/db.config");
 
 
 const ApplicationSettings = sequelize.define("ApplicationSettings", {
-  Id: {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
 
-  Key: {
+  key: {
     type: DataTypes.STRING,
   },
 
-  Value: {
+  value: {
     type: DataTypes.STRING,
     allowNull: false,
   },

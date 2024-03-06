@@ -1,84 +1,84 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
-const Role = require('./Role');
-const Deanery = require('./Deanery');
-const Parish = require('./Parish');
+const Role = require('./role.model');
+const Deanery = require('./deanery.model');
+const Parish = require('./parish.model');
 
 
 const User = sequelize.define("User", {
-  Id: {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
 
-  FirstName: {
+  firstName: {
     type: DataTypes.STRING,
   },
 
-  LastName: {
+  lastName: {
     type: DataTypes.STRING,
     allowNull: false,
   },
 
-  Email: {
+  email: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
     require: true,
   },
 
-  Password: { 
+  password: { 
     type: DataTypes.STRING, 
     allowNull: false 
   },
 
-  BaptismalName: {
+  baptismalName: {
     type: DataTypes.STRING,
   },
-  PhoneNumber: {
+  phoneNumber: {
     type: DataTypes.STRING,
   },
-  IsActive: {
+  isActive: {
     type: DataTypes.BOOLEAN,
   },
-  DeaneryId: {
+  deaneryId: {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  ParishId: {
+  parishId: {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  MembershipId: {
+  membershipId: {
     type: DataTypes.STRING,
   },
-  Position: {
+  position: {
     type: DataTypes.STRING,
   },
-  DateOfBirth: {
+  dateOfBirth: {
     type: DataTypes.DATE,
   },
-  RoleId: {
+  roleId: {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  Password: {
+  password: {
     type: DataTypes.STRING,
   },
-  Picture: {
+  picture: {
     type: DataTypes.STRING,
   },
 });
 
-Role.hasMany(User, { foreignKey: 'RoleId' });
+Role.hasMany(User, { foreignKey: 'roleId' });
 User.belongsTo(Role);
 
-Deanery.hasMany(User, { foreignKey: 'DeaneryId' });
+Deanery.hasMany(User, { foreignKey: 'deaneryId' });
 User.belongsTo(Deanery);
 
-Parish.hasMany(User, { foreignKey: 'ParishId' });
+Parish.hasMany(User, { foreignKey: 'parishId' });
 User.belongsTo(Parish);
 
 module.exports = User;

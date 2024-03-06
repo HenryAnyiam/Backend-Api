@@ -1,4 +1,4 @@
-const Role = require("../models/Role");
+const Role = require("../models/role.model");
 
 
 exports.getRoles = (req, res, next) => {
@@ -12,12 +12,12 @@ exports.getRoles = (req, res, next) => {
 
 exports.createRole = (req, res, next) => {
   console.log(req.body, "see");
-  const { Name, Description } =
+  const { name, description } =
   req?.body;
-  if ( Name ) {
+  if ( name ) {
     Role.findOne({
         where: {
-            Name,
+            name,
         },
     })
     .then((nameExists) => {
@@ -25,8 +25,8 @@ exports.createRole = (req, res, next) => {
             res.status(400).json({ msg: "Role already exists" });
           } else {
             Role.create({
-                Name,
-                Description,
+                name,
+                description,
             })
               .then((role) => {
                 res.status(200).json({role})
@@ -42,22 +42,4 @@ exports.createRole = (req, res, next) => {
   } else {
     res.status(400).json({ msg: "Bad Request" });
   }
-}
-
-
-exports.getRoleID = () => {
-  Role.findAll()
-      .then((role) => {
-        const roleid = [];
-        role.every(roles => {
-          if (roles.dataValues.Name !== "Member") {
-            roleid.push(roles.dataValues.Id)
-          }
-        });
-        return roleid;
-      })
-      .catch((err) => { 
-        console.log("Error", err)
-        return err;
-      })
 }

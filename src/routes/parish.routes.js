@@ -1,5 +1,5 @@
 const express = require("express");
-const parishController = require("../controllers/parish.controler");
+const parishController = require("../controllers/parish.controller");
 
 const route = express.Router();
 

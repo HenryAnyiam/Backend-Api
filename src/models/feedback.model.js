@@ -2,21 +2,25 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
 
 
-const Module = sequelize.define("Module", {
-  Id: {
+const Feedback = sequelize.define("Feedback", {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
 
-  Name: {
+  name: {
     type: DataTypes.STRING,
   },
 
-  IsActive: {
-    type: DataTypes.BOOLEAN,
+  subject: {
+    type: DataTypes.STRING,
+  },
+  
+  message: {
+    type: DataTypes.STRING,
   },
 });
 
-module.exports = Module;
+module.exports = Feedback;

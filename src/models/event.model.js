@@ -1,38 +1,51 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
+const Deanery = require("./deanery.model");
 
 
 const Event = sequelize.define("Event", {
-  Id: {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
-
-  Name: {
-    type: DataTypes.STRING,
-  },
-
-  Description: {
+  name: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  BannerImage: {
+  description: {
     type: DataTypes.STRING,
-    allowNull: true
+    allowNull: false
   },
-  Date: {
+  bannerImage: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  date: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
   },
-  IsActive: {
-    type: DataTypes.BOOLEAN
+  time: {
+    type: DataTypes.TIME,
+    allowNull: false,
   },
-  Venue: {
+  venue: {
     type: DataTypes.STRING,
     allowNull: true
   },
+  adcId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  deaneryId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+
 });
+
+Deanery.hasMany(Event, { foreignKey: 'deaneryId' });
+Event.belongsTo(Deanery);
 
 module.exports = Event;

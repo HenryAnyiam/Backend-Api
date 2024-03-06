@@ -1,5 +1,5 @@
-const Deanery = require("../models/Deanery");
-const Role = require("../models/Role");
+const Deanery = require("../models/deanery.model");
+const Role = require("../models/role.model");
 const jwt = require('jsonwebtoken');
 
 const AUTH_SECRET_KEY = process.env.Token;
@@ -15,43 +15,50 @@ exports.getDeaneries = (req, res, next) => {
 
 exports.createDeanery = (req, res, next) => {
   console.log(req.body, "see");
-  const { Name, MeetingDay, Time, Email} =
-  req?.body;
+  const { name, meetingDay, time, email, phoneNumber,
+          youtube, facebook, instagram, twitter,} = req?.body;
   let token = req.headers.token;
-  let roleId = "0";
-  if (
-    Email &&
-    Name
-    ) {
-      jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-        if (!(err) && decoded) {
-          const { Id, RoleId } = decoded;
-          if (RoleId) {
-            roleId = RoleId;
-          }
-        } 
-      });
+  let role = "0";
+  if ( email && name ) {
+    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
+      if (!(err) && decoded) {
+        const { id, roleId } = decoded;
+        if (roleId) {
+          role = roleId;
+        }
+      } 
+    });
     Role.findOne({
       where: {
-        Id: roleId
+        id: role
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.Name !== "Member") {
+        if (roleExists && roleExists.name !== "Member") {
           Deanery.findOne({
               where: {
-                  Email,
+                  email,
               },
           })
             .then((emailExists) => {
                 if (emailExists) {
                     res.status(400).json({ msg: "Email already exists" });
                   } else {
+                    let image;
+                    if (req.file) {
+                      image = req.file.path;
+                    }
                     Deanery.create({
-                        Name,
-                        MeetingDay,
-                        Time,
-                        Email,
+                        name,
+                        meetingDay,
+                        time,
+                        email,
+                        phoneNumber,
+                        facebook,
+                        youtube,
+                        instagram,
+                        twitter,
+                        image,
                     })
                       .then((deanery) => {
                         res.status(200).json(deanery)
@@ -76,15 +83,18 @@ exports.getParishes = (req, res, next) => {
   console.log(req.params);
   Deanery.findOne({
     where: {
-      Id: req.params.deaneryId
+      id: req.params.deaneryId
     }
   })
     .then((deanery) => {
     deanery.getParishes({
       attributes: [
-        'Id',
-        'Name',
-        'Email',
+        'id',
+        'name',
+        'email',
+        'location',
+        'meetingDay',
+        'time',
         ],
     })
       .then((parishes) => {
@@ -100,17 +110,17 @@ exports.getUsers = (req, res, next) => {
   console.log(req.params);
   Deanery.findOne({
     where: {
-      Id: req.params.deaneryId
+      id: req.params.deaneryId
     }
   })
     .then((deanery) => {
       deanery.getUsers({
         attributes: [
-          'Id',
-          'FirstName',
-          'LastName',
-          'PhoneNumber',
-          'Email'
+          'id',
+          'firstName',
+          'lastName',
+          'phoneNumber',
+          'email'
           ],
       })
         .then((users) => {
@@ -119,4 +129,40 @@ exports.getUsers = (req, res, next) => {
         .catch((err) => res.status(400).json({ msg: "Failed", error: err }));
   })
   .catch((err) => res.status(400).json({ msg: "Failed", error: err }));
+}
+
+
+exports.getEvents = (req, res, next) => {
+  console.log(req.params);
+  Deanery.findOne({
+    where: {
+      id: req.params.deaneryId
+    }
+  })
+    .then((deanery) => {
+    deanery.getEvents()
+      .then((events) => {
+        res.status(200).json(events);
+      })
+      .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+  })
+  .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+}
+
+
+exports.getExecutives = (req, res, next) => {
+  console.log(req.params);
+  Deanery.findOne({
+    where: {
+      id: req.params.deaneryId
+    }
+  })
+    .then((deanery) => {
+    deanery.getExecutives()
+      .then((executivess) => {
+        res.status(200).json(executives);
+      })
+      .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+  })
+  .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 }
