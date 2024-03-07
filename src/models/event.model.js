@@ -46,6 +46,6 @@ const Event = sequelize.define("Event", {
 });
 
 Deanery.hasMany(Event, { foreignKey: 'deaneryId' });
-Event.belongsTo(Deanery);
+Event.belongsTo(Deanery, { foreignKey: 'deaneryId' });
 
 module.exports = Event;

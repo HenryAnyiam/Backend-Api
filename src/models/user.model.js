@@ -26,7 +26,7 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    require: true,
+    required: true,
   },
 
   password: { 
@@ -45,11 +45,11 @@ const User = sequelize.define("User", {
   },
   deaneryId: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
   },
   parishId: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
   },
   membershipId: {
     type: DataTypes.STRING,
@@ -73,12 +73,12 @@ const User = sequelize.define("User", {
 });
 
 Role.hasMany(User, { foreignKey: 'roleId' });
-User.belongsTo(Role);
+User.belongsTo(Role, { foreignKey: 'roleId' });
 
 Deanery.hasMany(User, { foreignKey: 'deaneryId' });
-User.belongsTo(Deanery);
+User.belongsTo(Deanery, { foreignKey: 'deaneryId' });
 
 Parish.hasMany(User, { foreignKey: 'parishId' });
-User.belongsTo(Parish);
+User.belongsTo(Parish, { foreignKey: 'parishId' });
 
 module.exports = User;

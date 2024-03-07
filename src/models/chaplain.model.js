@@ -27,6 +27,6 @@ const Chaplain = sequelize.define("Chaplain", {
 });
 
 Deanery.hasMany(Chaplain, { foreignKey: 'deaneryId' });
-Chaplain.belongsTo(Deanery);
+Chaplain.belongsTo(Deanery, { foreignKey: 'deaneryId' });
 
 module.exports = Chaplain;

@@ -8,7 +8,7 @@ route.get("/", userController.getUsers);
 // route.get("/:userId",);
 // route.put("/:userId",);
 // route.delete(":/userId");
-route.post("/new", upload.single('image'), userController.createUser);
+route.post("/new", upload.single('picture'), userController.createUser);
 route.post("/login", userController.loginUser);
 
 module.exports = route;

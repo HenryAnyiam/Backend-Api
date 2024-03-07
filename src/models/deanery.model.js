@@ -18,13 +18,13 @@ const Deanery = sequelize.define("Deanery", {
     type: DataTypes.STRING,
   },
   time: {
-    type: DataTypes.STRING,
+    type: DataTypes.TIME,
   },
   email: {
     type: DataTypes.STRING,
     allowNull: true,
     unique: true,
-    require: true,
+    required: true,
   },
   banner: {
     type: DataTypes.STRING,

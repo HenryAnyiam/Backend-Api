@@ -32,6 +32,6 @@ const Executive = sequelize.define("User", {
 });
 
 Deanery.hasMany(Executive, { foreignKey: 'deaneryId' });
-Executive.belongsTo(Deanery);
+Executive.belongsTo(Deanery, { foreignKey: 'deaneryId' });
 
 module.exports = Executive;

@@ -14,16 +14,15 @@ exports.getUsers = (req, res, next) => {
       'lastName',
       'phoneNumber',
       'email',
+      'picture'
       ],
     include: [
       {
       model: Deanery,
-      attributes: ['name'],
       as: 'Deanery'
     },
     {
       model: Parish,
-      attributes: ['name'],
       as: 'Parish'
     },
   ],
@@ -36,6 +35,7 @@ exports.getUsers = (req, res, next) => {
 
 exports.createUser = (req, res, next) => {
   console.log(req.body, "see");
+  console.log(req.file, "file");
   const { firstName, lastName, email, password, phoneNumber, deaneryId, parishId, roleId } =
     req?.body;
   if (
@@ -44,8 +44,6 @@ exports.createUser = (req, res, next) => {
     !email ||
     !password ||
     !phoneNumber ||
-    !deaneryId ||
-    !parishId ||
     !roleId
   ) {
     res.status(400).json({ msg: "All Fields are required" });
@@ -69,6 +67,7 @@ exports.createUser = (req, res, next) => {
           let picture;
           if (req.file) {
             picture = req.file.path;
+            console.log(req.file.path);
           }
           User.create({
             firstName,
@@ -82,6 +81,7 @@ exports.createUser = (req, res, next) => {
             picture,
           })
             .then((user) => {
+              console.log(user)
               jwt.sign(
                 { id: user.id,
                   roleId: user.roleId },
@@ -97,17 +97,16 @@ exports.createUser = (req, res, next) => {
                       'firstName',
                       'lastName',
                       'phoneNumber',
-                      'email'
+                      'email',
+                      'picture'
                       ],
                     include: [
                       {
                       model: Deanery,
-                      attributes: ['name'],
                       as: 'Deanery'
                     },
                     {
                       model: Parish,
-                      attributes: ['name'],
                       as: 'Parish'
                     }
                   ]
@@ -157,16 +156,15 @@ exports.loginUser = (req, res, next) => {
           'lastName',
           'phoneNumber',
           'email',
+          'picture'
           ],
         include: [
           {
           model: Deanery,
-          attributes: ['name'],
           as: 'Deanery'
         },
         {
           model: Parish,
-          attributes: ['name'],
           as: 'Parish'
         }
       ]
