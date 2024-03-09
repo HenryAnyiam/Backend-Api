@@ -81,7 +81,6 @@ exports.createUser = (req, res, next) => {
             picture,
           })
             .then((user) => {
-              console.log(user)
               jwt.sign(
                 { id: user.id,
                   roleId: user.roleId },
@@ -92,37 +91,25 @@ exports.createUser = (req, res, next) => {
                     where: {
                       id: user.id
                     },
-                    attributes: [
-                      'id',
-                      'firstName',
-                      'lastName',
-                      'phoneNumber',
-                      'email',
-                      'picture'
-                      ],
-                    include: [
-                      {
-                      model: Deanery,
-                      as: 'Deanery'
-                    },
-                    {
-                      model: Parish,
-                      as: 'Parish'
-                    }
-                  ]
+                    
                   })
                     .then((newUser) => {
                       newUser['token'] = token;
-                      res.status(200).json({
+                       const response = {
                         token: token,
                         id: newUser.id,
                         firstName: newUser.firstName,
                         lastName: newUser.lastName,
                         email: newUser.email,
                         phoneNumber: newUser.phoneNumber,
-                        deanery: newUser.Deanery.name,
-                        parish: newUser.Parish.name,
-                      })
+                      }
+                      if (newUser.deanery) {
+                        response.deanery = newUser.Deanery.name;
+                      }
+                      if (newUser.Parish) {
+                        response.parish = newUser.Parish.name;
+                      }
+                      res.status(200).json(response)
                     })
                     .catch((err) => {
                       res.status(400).json({ msg: err.message})
@@ -149,25 +136,7 @@ exports.loginUser = (req, res, next) => {
     User.findOne({
       where: {
         email,
-      },
-        attributes: [
-          'id',
-          'firstName',
-          'lastName',
-          'phoneNumber',
-          'email',
-          'picture'
-          ],
-        include: [
-          {
-          model: Deanery,
-          as: 'Deanery'
-        },
-        {
-          model: Parish,
-          as: 'Parish'
-        }
-      ]
+      }
     })
       .then((user) => {
         if (user) {
@@ -175,20 +144,28 @@ exports.loginUser = (req, res, next) => {
           correctPassword = bcrypt.compareSync(password, user.password);
           if (correctPassword) {
             jwt.sign(
-              { id: user.id },
+              { id: user.id,
+                roleId: user.roleId},
               AUTH_SECRET_KEY,
               { expiresIn: "5h" },
               (err, token) => {
-                res.status(200).json({
+                const response = {
                   token: token,
                   id: user.id,
                   firstName: user.firstName,
                   lastName: user.lastName,
                   email: user.email,
                   phoneNumber: user.phoneNumber,
-                  deanery: user.Deanery.name,
-                  parish: user.Parish.name,
-                });
+                  deanery: user.Deanery,
+                  parish: user.Parish,
+                }
+                if (user.Deanery) {
+                  response.deanery = user.Deanery.name;
+                }
+                if (user.Parish) {
+                  response.parish = user.Parish.name;
+                }
+                res.status(200).json(response);
               }
             );
           } else {

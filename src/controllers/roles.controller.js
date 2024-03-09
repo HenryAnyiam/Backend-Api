@@ -11,7 +11,6 @@ exports.getRoles = (req, res, next) => {
 
 
 exports.createRole = (req, res, next) => {
-  console.log(req.body, "see");
   const { name, description } =
   req?.body;
   if ( name ) {
@@ -29,7 +28,7 @@ exports.createRole = (req, res, next) => {
                 description,
             })
               .then((role) => {
-                res.status(200).json({role})
+                res.status(200).json(role)
               })
               .catch((err) => {
                 res.status(400).json({ msg: err.message || "Not created" })

@@ -3,7 +3,7 @@ const sequelize = require("../config/db.config");
 const Deanery = require('./deanery.model');
 
 
-const Executive = sequelize.define("User", {
+const Executive = sequelize.define("Executive", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,

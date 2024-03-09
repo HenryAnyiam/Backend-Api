@@ -14,7 +14,6 @@ exports.getDeaneries = (req, res, next) => {
 
 
 exports.createDeanery = (req, res, next) => {
-  console.log(req.body, "see");
   const { name, meetingDay, time, email, phoneNumber,
           youtube, facebook, instagram, twitter,} = req?.body;
   let token = req.headers.token;
@@ -34,6 +33,7 @@ exports.createDeanery = (req, res, next) => {
       }
     })
       .then((roleExists) => {
+        console.log(roleExists.name)
         if (roleExists && roleExists.name !== "Member") {
           Deanery.findOne({
               where: {
@@ -44,9 +44,9 @@ exports.createDeanery = (req, res, next) => {
                 if (emailExists) {
                     res.status(400).json({ msg: "Email already exists" });
                   } else {
-                    let image;
+                    let banner;
                     if (req.file) {
-                      image = req.file.path;
+                      banner = req.file.path;
                     }
                     Deanery.create({
                         name,
@@ -58,7 +58,7 @@ exports.createDeanery = (req, res, next) => {
                         youtube,
                         instagram,
                         twitter,
-                        image,
+                        banner,
                     })
                       .then((deanery) => {
                         res.status(200).json(deanery)
@@ -133,7 +133,7 @@ exports.getUsers = (req, res, next) => {
 
 
 exports.getEvents = (req, res, next) => {
-  console.log(req.params);
+  console.log(req.params.deaneryId);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -144,14 +144,14 @@ exports.getEvents = (req, res, next) => {
       .then((events) => {
         res.status(200).json(events);
       })
-      .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+      .catch((err) => res.status(400).json({ msg: "Event not Found", error: err }));
   })
-  .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+  .catch((err) => res.status(400).json({ msg: "Deanery Not Found", error: err }));
 }
 
 
 exports.getExecutives = (req, res, next) => {
-  console.log(req.params);
+  console.log(req.params.deaneryId);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -159,10 +159,10 @@ exports.getExecutives = (req, res, next) => {
   })
     .then((deanery) => {
     deanery.getExecutives()
-      .then((executivess) => {
+      .then((executives) => {
         res.status(200).json(executives);
       })
-      .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+      .catch((err) => res.status(400).json({ msg: "Executive not Found", error: err }));
   })
-  .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+  .catch((err) => res.status(400).json({ msg: "Deanery Not Found", error: err }));
 }

@@ -6,19 +6,7 @@ const Deanery = require("../models/deanery.model");
 const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getParishes = (req, res, next) => {
-  Parish.findAll({
-    attributes: [
-      'id',
-      'name',
-      'email',
-      ],
-    include: [
-      {
-      model: Deanery,
-      attributes: ['name'],
-      as: 'deanery'
-    }]
-  })
+  Parish.findAll()
     .then((parishes) => {
       res.status(200).json(parishes);
     })
@@ -28,8 +16,7 @@ exports.getParishes = (req, res, next) => {
 
 exports.createParish = (req, res, next) => {
   console.log(req.body, "see");
-  const { name, meetingDay, time, email, deaneryId, location, } =
-  req?.body;
+  const { name, meetingDay, time, email, deaneryId, location, } = req?.body;
   let token = req.headers.token;
   let role = "0";
   if (
@@ -73,30 +60,7 @@ exports.createParish = (req, res, next) => {
                         location
                     })
                       .then((parish) => {
-                        Parish.findOne({
-                          where: {
-                            id: parish.id
-                          },
-                          attributes: [
-                            'id',
-                            'name',
-                            'email',
-                            'time',
-                            'location'
-                            ],
-                          include: [
-                            {
-                            model: Deanery,
-                            attributes: ['name'],
-                            as: 'deanery'
-                          }]
-                        })
-                          .then((newParish) => {
-                            res.status(200).json(newParish);
-                          })
-                          .catch((err) => {
-                            res.status(400).json({ msg: err.message});
-                          })
+                        res.status(400).json(parish)
                       })
                       .catch((err) => {
                         res.status(400).json({ msg: err.message || "Not created" })
@@ -110,7 +74,9 @@ exports.createParish = (req, res, next) => {
               res.status(403).json({ msg: "Action Not Allowed" });
             }
           })
-}
+        } else {
+          res.status(400).json({ msg: "Incomplete Information" })
+        }
 }
 
 
