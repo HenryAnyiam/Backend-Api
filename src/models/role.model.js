@@ -1,25 +1,27 @@
+
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
 
 
-const Feedback = sequelize.define("Feedback", {
-  Id: {
+const Role = sequelize.define("Role", {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
 
-  Name: {
+  name: {
     type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
   },
 
-  Subject: {
+  description: {
     type: DataTypes.STRING,
-  },
-  Message: {
-    type: DataTypes.STRING,
+    allowNull: true,
   },
 });
 
-module.exports = Feedback;
+
+module.exports = Role;

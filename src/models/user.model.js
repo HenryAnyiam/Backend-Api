@@ -1,84 +1,84 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
-const Role = require('./Role');
-const Deanery = require('./Deanery');
-const Parish = require('./Parish');
+const Role = require('./role.model');
+const Deanery = require('./deanery.model');
+const Parish = require('./parish.model');
 
 
 const User = sequelize.define("User", {
-  Id: {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
 
-  FirstName: {
+  firstName: {
     type: DataTypes.STRING,
   },
 
-  LastName: {
+  lastName: {
     type: DataTypes.STRING,
     allowNull: false,
   },
 
-  Email: {
+  email: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    require: true,
+    required: true,
   },
 
-  Password: { 
+  password: { 
     type: DataTypes.STRING, 
     allowNull: false 
   },
 
-  BaptismalName: {
+  baptismalName: {
     type: DataTypes.STRING,
   },
-  PhoneNumber: {
+  phoneNumber: {
     type: DataTypes.STRING,
   },
-  IsActive: {
+  isActive: {
     type: DataTypes.BOOLEAN,
   },
-  DeaneryId: {
+  deaneryId: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
   },
-  ParishId: {
+  parishId: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
   },
-  MembershipId: {
+  membershipId: {
     type: DataTypes.STRING,
   },
-  Position: {
+  position: {
     type: DataTypes.STRING,
   },
-  DateOfBirth: {
+  dateOfBirth: {
     type: DataTypes.DATE,
   },
-  RoleId: {
+  roleId: {
     type: DataTypes.UUID,
     allowNull: false,
   },
-  Password: {
+  password: {
     type: DataTypes.STRING,
   },
-  Picture: {
+  picture: {
     type: DataTypes.STRING,
   },
 });
 
-Role.hasMany(User, { foreignKey: 'RoleId' });
-User.belongsTo(Role);
+Role.hasMany(User, { foreignKey: 'roleId' });
+User.belongsTo(Role, { foreignKey: 'roleId' });
 
-Deanery.hasMany(User, { foreignKey: 'DeaneryId' });
-User.belongsTo(Deanery);
+Deanery.hasMany(User, { foreignKey: 'deaneryId' });
+User.belongsTo(Deanery, { foreignKey: 'deaneryId' });
 
-Parish.hasMany(User, { foreignKey: 'ParishId' });
-User.belongsTo(Parish);
+Parish.hasMany(User, { foreignKey: 'parishId' });
+User.belongsTo(Parish, { foreignKey: 'parishId' });
 
 module.exports = User;

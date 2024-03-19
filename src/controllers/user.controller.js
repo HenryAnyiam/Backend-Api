@@ -1,29 +1,28 @@
 const jwt = require('jsonwebtoken');
-const User = require("../models/User");
-const Deanery = require("../models/Deanery");
-const Parish = require("../models/Parish");
+const User = require("../models/user.model");
+const Deanery = require("../models/deanery.model");
+const Parish = require("../models/parish.model");
 const bcrypt = require('bcrypt');
 
 const AUTH_SECRET_KEY = process.env.Token;
 
-exports.getUser = (req, res, next) => {
+exports.getUsers = (req, res, next) => {
   User.findAll({
     attributes: [
-      'Id',
-      'FirstName',
-      'LastName',
-      'PhoneNumber',
-      'Email',
+      'id',
+      'firstName',
+      'lastName',
+      'phoneNumber',
+      'email',
+      'picture'
       ],
     include: [
       {
       model: Deanery,
-      attributes: ['Name'],
       as: 'Deanery'
     },
     {
       model: Parish,
-      attributes: ['Name'],
       as: 'Parish'
     },
   ],
@@ -36,26 +35,24 @@ exports.getUser = (req, res, next) => {
 
 exports.createUser = (req, res, next) => {
   console.log(req.body, "see");
-  const { FirstName, LastName, Email, Password, PhoneNumber, DeaneryId, ParishId, RoleId } =
+  console.log(req.file, "file");
+  const { firstName, lastName, email, password, phoneNumber, deaneryId, parishId, roleId } =
     req?.body;
   if (
-    !FirstName ||
-    !LastName ||
-    !Email ||
-    !Password ||
-    !PhoneNumber ||
-    !DeaneryId ||
-    !ParishId ||
-    !RoleId
+    !firstName ||
+    !lastName ||
+    !email ||
+    !password ||
+    !phoneNumber ||
+    !roleId
   ) {
     res.status(400).json({ msg: "All Fields are required" });
   } else {
     User.findOne({
       where: {
-        Email,
+        email,
       },
     })
-
       .then((emailExist) => {
         if (emailExist) {
           res.status(400).json({ msg: "Email already exists" });
@@ -63,63 +60,56 @@ exports.createUser = (req, res, next) => {
           let hashedPassword;
           try {
             const salt = bcrypt.genSaltSync(10);
-            hashedPassword = bcrypt.hashSync(Password, salt);
+            hashedPassword = bcrypt.hashSync(password, salt);
           } catch (error) {
             throw error;
           }
+          let picture;
+          if (req.file) {
+            picture = req.file.path;
+            console.log(req.file.path);
+          }
           User.create({
-            FirstName,
-            Email,
-            LastName,
-            PhoneNumber,
-            Password: hashedPassword,
-            DeaneryId,
-            ParishId,
-            RoleId
+            firstName,
+            email,
+            lastName,
+            phoneNumber,
+            password: hashedPassword,
+            deaneryId,
+            parishId,
+            roleId,
+            picture,
           })
             .then((user) => {
               jwt.sign(
-                { Id: user.Id,
-                  RoleId: user.RoleId },
+                { id: user.id,
+                  roleId: user.roleId },
                 AUTH_SECRET_KEY,
                 { expiresIn: "5h" },
                 (err, token) => {
                   User.findOne({
                     where: {
-                      Id: user.Id
+                      id: user.id
                     },
-                    attributes: [
-                      'Id',
-                      'FirstName',
-                      'LastName',
-                      'PhoneNumber',
-                      'Email'
-                      ],
-                    include: [
-                      {
-                      model: Deanery,
-                      attributes: ['Name'],
-                      as: 'Deanery'
-                    },
-                    {
-                      model: Parish,
-                      attributes: ['Name'],
-                      as: 'Parish'
-                    }
-                  ]
+                    
                   })
                     .then((newUser) => {
                       newUser['token'] = token;
-                      res.status(200).json({
-                        Token: token,
-                        Id: newUser.Id,
-                        FirstName: newUser.FirstName,
-                        LastName: newUser.LastName,
-                        Email: newUser.Email,
-                        PhoneNumber: newUser.PhoneNumber,
-                        Deanery: newUser.Deanery.Name,
-                        Parish: newUser.Parish.Name,
-                      })
+                       const response = {
+                        token: token,
+                        id: newUser.id,
+                        firstName: newUser.firstName,
+                        lastName: newUser.lastName,
+                        email: newUser.email,
+                        phoneNumber: newUser.phoneNumber,
+                      }
+                      if (newUser.deanery) {
+                        response.deanery = newUser.Deanery.name;
+                      }
+                      if (newUser.Parish) {
+                        response.parish = newUser.Parish.name;
+                      }
+                      res.status(200).json(response)
                     })
                     .catch((err) => {
                       res.status(400).json({ msg: err.message})
@@ -140,53 +130,42 @@ exports.createUser = (req, res, next) => {
 
 exports.loginUser = (req, res, next) => {
   console.log(req.body, "see");
-  const { Email, Password } =
+  const { email, password } =
   req?.body;
-  if ( Email && Password) {
+  if ( email && password) {
     User.findOne({
       where: {
-        Email,
-      },
-        attributes: [
-          'Id',
-          'FirstName',
-          'LastName',
-          'PhoneNumber',
-          'Email',
-          ],
-        include: [
-          {
-          model: Deanery,
-          attributes: ['Name'],
-          as: 'Deanery'
-        },
-        {
-          model: Parish,
-          attributes: ['Name'],
-          as: 'Parish'
-        }
-      ]
+        email,
+      }
     })
       .then((user) => {
         if (user) {
           let correctPassword;
-          correctPassword = bcrypt.compareSync(Password, user.Password);
+          correctPassword = bcrypt.compareSync(password, user.password);
           if (correctPassword) {
             jwt.sign(
-              { id: user.id },
+              { id: user.id,
+                roleId: user.roleId},
               AUTH_SECRET_KEY,
               { expiresIn: "5h" },
               (err, token) => {
-                res.status(200).json({
-                  Token: token,
-                  Id: user.Id,
-                  FirstName: user.FirstName,
-                  LastName: user.LastName,
-                  Email: user.Email,
-                  PhoneNumber: user.PhoneNumber,
-                  Deanery: user.Deanery.Name,
-                  Parish: user.Parish.Name,
-                });
+                const response = {
+                  token: token,
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                  phoneNumber: user.phoneNumber,
+                  deanery: user.Deanery,
+                  parish: user.Parish,
+                }
+                if (user.Deanery) {
+                  response.deanery = user.Deanery.name;
+                }
+                if (user.Parish) {
+                  response.parish = user.Parish.name;
+                }
+                res.status(200).json(response);
               }
             );
           } else {

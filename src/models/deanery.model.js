@@ -3,28 +3,47 @@ const sequelize = require("../config/db.config");
 
 
 const Deanery = sequelize.define("Deanery", {
-  Id: {
+  id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     primaryKey: true,
   },
-
-  Name: {
+  name: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
-  MeetingDay: {
+  meetingDay: {
     type: DataTypes.STRING,
   },
-  Time: {
-    type: DataTypes.STRING,
+  time: {
+    type: DataTypes.TIME,
   },
-  Email: {
+  email: {
     type: DataTypes.STRING,
     allowNull: true,
     unique: true,
-    require: true,
+    required: true,
+  },
+  banner: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  phoneNumber: {
+    type: DataTypes.STRING,
+  },
+  youtube: {
+    type: DataTypes.STRING
+  },
+  instagram: {
+    type: DataTypes.STRING,
+  },
+  facebook: {
+    type: DataTypes.STRING,
+  },
+  twitter: {
+    type: DataTypes.STRING
   },
 });
 
