@@ -55,7 +55,7 @@ exports.createExecutive = (req, res, next) => {
               res.status(400).json({ msg: err.message || "Not created" })
             })
         } else {
-        res.status(403).json({ msg: "Action Not Allowed" });
+          return res.status(403).json({ msg: "Action Not Allowed" });
       }
     })
   }
