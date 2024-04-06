@@ -14,7 +14,6 @@ exports.getExecutives = (req, res, next) => {
 
 
 exports.createExecutive = (req, res, next) => {
-  console.log(req.body, "see");
   const { name, position, deaneryId} = req?.body;
   let token = req.headers.token;
   let role = "0";
@@ -62,8 +61,27 @@ exports.createExecutive = (req, res, next) => {
   }
 }
 
+exports.updateExecutive = async (req, res, next) => {
+  try {
+    const roleExists = await Role.findByPk(req.body.roleId);
+    if (!(roleExists || roleExists.name == "Member")) {
+      return res.status(401).json({ msg: "Unauthorized Action"});
+    }
+    const executive = await Executive.findByPk(req.params.executiveId);
+    await executive.update(req.body);
+    let picture;
+    if (req.file) {
+      picture = req.file.path;
+    }
+    executive.picture = picture || executive.picture;
+    await executive.save();
+    res.status(200).json({ msg: "Updated Successfully", executive});
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
+
 exports.getAdcExecutives = (req, res, next) => {
-  console.log(req.params);
   Executive.findAll({
     where: {
       adcId: "Lagos"

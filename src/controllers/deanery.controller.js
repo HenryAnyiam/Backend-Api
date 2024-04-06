@@ -1,4 +1,5 @@
 const Deanery = require("../models/deanery.model");
+const Parish = require("../models/parish.model");
 const Role = require("../models/role.model");
 const jwt = require('jsonwebtoken');
 
@@ -41,46 +42,104 @@ exports.createDeanery = (req, res, next) => {
               },
           })
             .then((emailExists) => {
-                if (emailExists) {
-                    res.status(400).json({ msg: "Email already exists" });
-                  } else {
-                    let banner;
-                    if (req.file) {
-                      banner = req.file.path;
-                    }
-                    Deanery.create({
-                        name,
-                        meetingDay,
-                        time,
-                        email,
-                        phoneNumber,
-                        facebook,
-                        youtube,
-                        instagram,
-                        twitter,
-                        banner,
-                    })
-                      .then((deanery) => {
-                        res.status(200).json(deanery)
-                      })
-                      .catch((err) => {
-                        res.status(400).json({ msg: err.message || "Not created" })
-                      })
-                  }
+              if (emailExists) {
+                  res.status(400).json({ msg: "Email already exists" });
+              } else {
+                let banner;
+                if (req.file) {
+                  banner = req.file.path;
+                }
+                Deanery.create({
+                    name,
+                    meetingDay,
+                    time,
+                    email,
+                    phoneNumber,
+                    facebook,
+                    youtube,
+                    instagram,
+                    twitter,
+                    banner,
+                })
+                  .then((deanery) => {
+                    res.status(200).json(deanery)
+                  })
+                  .catch((err) => {
+                    res.status(400).json({ msg: err.message || "Not created" })
+                  })
+              }
             })
             .catch((err) => {
                 console.log(err);
-              });
-            } else {
-              res.status(403).json({ msg: "Action Not Allowed" });
-            }
-          })
+            });
+        } else {
+          res.status(403).json({ msg: "Action Not Allowed" });
+        }
+    })
+  }
+}
+
+exports.updateDeanery = async (req, res, next) => {
+  try {
+    let role = "0";
+    let token = req.headers.token;
+    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
+      if (!(err) && decoded) {
+        const { id, roleId } = decoded;
+        if (roleId  !== undefined) {
+          role = roleId;
         }
       }
+    });
+    const roleExists = await Role.findByPk(role);
+    if (!(roleExists)) {
+      return res.status(403).json({ msg: "Unauthorized Action"});
+    }
+    const deanery = await Deanery.findByPk(req.params.deaneryId);
+    await deanery.update(req.body);
+    let banner;
+    if (req.file) {
+      banner = req.file.path;
+    }
+    deanery.banner = banner || deanery.banner;
+    await deanery.save();
+    return res.status(200).json({ msg: "Updated Successfully", deanery});
+  } catch (e) {
+    return res.status(400).json({ msg: e.message });
+  }
+}
+
+
+exports.getDeanery = async (req, res, next) => {
+  try {
+    const deanery = await Deanery.findByPk(
+      req.params.deaneryId,
+      {include: [{
+        model: Parish,
+        attributes: ['id', 'name', 'email', 'location', 'meetingDay', 'time']
+      }]
+    })
+    res.status(200).json(deanery);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
+
+exports.getPaidParishes = async (req, res, next) => {
+  try {
+    const deanery = await Deanery.findByPk(req.params.deaneryId)
+    const parishes = deanery.getParishes({
+      where: { hasPaid: true},
+      attributes: ['id', 'name', 'email', 'location', 'meetingDay', 'time']
+    })
+    res.status(200).json(parishes);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
 
 
 exports.getParishes = (req, res, next) => {
-  console.log(req.params);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -95,7 +154,7 @@ exports.getParishes = (req, res, next) => {
         'location',
         'meetingDay',
         'time',
-        ],
+      ],
     })
       .then((parishes) => {
         res.status(200).json(parishes);
@@ -105,9 +164,7 @@ exports.getParishes = (req, res, next) => {
   .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 }
 
-
 exports.getUsers = (req, res, next) => {
-  console.log(req.params);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -133,7 +190,6 @@ exports.getUsers = (req, res, next) => {
 
 
 exports.getEvents = (req, res, next) => {
-  console.log(req.params.deaneryId);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -151,7 +207,6 @@ exports.getEvents = (req, res, next) => {
 
 
 exports.getExecutives = (req, res, next) => {
-  console.log(req.params.deaneryId);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId

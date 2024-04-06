@@ -77,3 +77,24 @@ exports.getAdcEvents = (req, res, next) => {
   })
   .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 }
+
+
+exports.updateEvent = async (req, res, next) => {
+  try {
+    const roleExists = await Role.findByPk(req.body.roleId);
+    if (!(roleExists || roleExists.name == "Member")) {
+      return res.status(401).json({ msg: "Unauthorized Action"});
+    }
+    const event = await Event.findByPk(req.params.eventId);
+    await event.update(req.body);
+    let bannerImage;
+    if (req.file) {
+      bannerImage = req.file.path;
+    }
+    event.bannerImage = bannerImage || event.bannerImage;
+    await event.save();
+    res.status(200).json({ msg: "Updated Successfully", event });
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
