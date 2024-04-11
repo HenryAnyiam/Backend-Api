@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 router.get("/all", eventController.getEvents);
-router.post("/new", upload.single("bannerImage"), eventController.createEvent);
+router.post("/new", upload.single("bannerImage"), verifyToken, eventController.createEvent);
 router.get("/adcEvents", eventController.getAdcEvents);
 router.put("/:eventId", upload.single("bannerImage"), verifyToken, eventController.updateEvent);
 

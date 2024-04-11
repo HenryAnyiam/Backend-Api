@@ -1,9 +1,6 @@
 const Deanery = require("../models/deanery.model");
 const Parish = require("../models/parish.model");
 const Role = require("../models/role.model");
-const jwt = require('jsonwebtoken');
-
-const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getDeaneries = (req, res, next) => {
   Deanery.findAll()
@@ -17,25 +14,16 @@ exports.getDeaneries = (req, res, next) => {
 exports.createDeanery = (req, res, next) => {
   const { name, meetingDay, time, email, phoneNumber,
           youtube, facebook, instagram, twitter,} = req?.body;
-  let token = req.headers.token;
   let role = "0";
   if ( email && name ) {
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId) {
-          role = roleId;
-        }
-      } 
-    });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        console.log(roleExists.name)
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin"]
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           Deanery.findOne({
               where: {
                   email,
@@ -81,18 +69,9 @@ exports.createDeanery = (req, res, next) => {
 
 exports.updateDeanery = async (req, res, next) => {
   try {
-    let role = "0";
-    let token = req.headers.token;
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId  !== undefined) {
-          role = roleId;
-        }
-      }
-    });
-    const roleExists = await Role.findByPk(role);
-    if (!(roleExists)) {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
       return res.status(403).json({ msg: "Unauthorized Action"});
     }
     const deanery = await Deanery.findByPk(req.params.deaneryId);

@@ -17,8 +17,6 @@ exports.getParishes = (req, res, next) => {
 
 exports.createParish = (req, res, next) => {
   const { name, meetingDay, time, email, deaneryId, location, } = req?.body;
-  let token = req.headers.token;
-  let role = "0";
   if (
     email &&
     name && 
@@ -27,21 +25,14 @@ exports.createParish = (req, res, next) => {
     meetingDay &&
     time
     ) {
-      jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-        if (!(err) && decoded) {
-          const { id, roleId } = decoded;
-          if (roleId  !== undefined) {
-            role = roleId;
-          }
-        }
-      });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           Parish.findOne({
               where: {
                   email,
@@ -92,18 +83,9 @@ exports.getPaidParishes = async (req, res, next) => {
 
 exports.switchPaid = async (req, res, next) => {
   try {
-    let role = "0";
-    let token = req.headers.token;
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId  !== undefined) {
-          role = roleId;
-        }
-      }
-    });
-    const roleExists = await Role.findByPk(role);
-    if (!(roleExists)) {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin"];
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
       res.status(403).json({ msg: "Unauthorized Action"});
     }
     const parishes = await Parish.findAll({where: {hasPaid: true}})
@@ -120,18 +102,9 @@ exports.switchPaid = async (req, res, next) => {
 
 exports.updateParish = async (req, res, next) => {
   try {
-    let role = "0";
-    let token = req.headers.token;
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId  !== undefined) {
-          role = roleId;
-        }
-      }
-    });
-    const roleExists = await Role.findByPk(role);
-    if (!(roleExists)) {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
       res.status(403).json({ msg: "Unauthorized Action"});
     }
     const parish = await Parish.findByPk(req.params.parishId);

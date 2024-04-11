@@ -15,24 +15,15 @@ exports.getExecutives = (req, res, next) => {
 
 exports.createExecutive = (req, res, next) => {
   const { name, position, deaneryId} = req?.body;
-  let token = req.headers.token;
-  let role = "0";
   if ( name && position ) {
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId) {
-          role = roleId;
-        }
-      } 
-    });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           let adcId;
           if (!deaneryId) {
             adcId = "Lagos";
@@ -63,8 +54,9 @@ exports.createExecutive = (req, res, next) => {
 
 exports.updateExecutive = async (req, res, next) => {
   try {
-    const roleExists = await Role.findByPk(req.body.roleId);
-    if (!(roleExists || roleExists.name == "Member")) {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
       return res.status(401).json({ msg: "Unauthorized Action"});
     }
     const executive = await Executive.findByPk(req.params.executiveId);

@@ -14,8 +14,9 @@ exports.getAyds = async (req, res, next) => {
 
 exports.createAyd = async (req, res, next) => {
   try {
-    const roleExists = await Role.findByPk(req.body.roleId);
-    if (!(roleExists || roleExists.name == "Member")) {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
       return res.status(401).json({ msg: "Unauthorized Action"});
     }
     const { theme, date, time, venue, host } = req.body;
@@ -57,9 +58,10 @@ exports.getAyd = async (req, res, next) => {
 
 exports.updateAyd = async (req, res, next) => {
   try {
-      const roleExists = await Role.findByPk(req.body.roleId);
-      if (!(roleExists || roleExists.name == "Member")) {
-           return res.status(401).json({ msg: "Unauthorized Action"});
+      const roleExists = await Role.findByPk(req.user.roleId);
+      const allowedRoles = ["Super Admin", "ADC Admin"]
+      if (!(roleExists || allowedRoles.includes(roleExists.name))) {
+        return res.status(401).json({ msg: "Unauthorized Action"});
       }
       const ayd = await AYD.findByPk(req.params.aydId);
       await ayd.update(req.body);

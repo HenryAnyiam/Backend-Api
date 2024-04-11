@@ -12,8 +12,7 @@ const verifyToken = (req, res, next) => {
     jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
       if (!(err) && decoded) {
             const { id, roleId } = decoded;
-            req.body.userId = id;
-            req.body.roleId = roleId;
+            req.user = { id, roleId };
             next();
       } else {
         console.log(err);

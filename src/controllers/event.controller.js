@@ -16,24 +16,15 @@ exports.getEvents = (req, res, next) => {
 exports.createEvent = (req, res, next) => {
   console.log(req.body, "see");
   const { name, description, date, time, venue, deaneryId} = req?.body;
-  let token = req.headers.token;
-  let role = "0";
   if ( name && date ) {
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId) {
-          role = roleId;
-        }
-      } 
-    });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"];
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           let adcId;
           if (!deaneryId) {
             adcId = "Lagos";
@@ -81,8 +72,9 @@ exports.getAdcEvents = (req, res, next) => {
 
 exports.updateEvent = async (req, res, next) => {
   try {
-    const roleExists = await Role.findByPk(req.body.roleId);
-    if (!(roleExists || roleExists.name == "Member")) {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
       return res.status(401).json({ msg: "Unauthorized Action"});
     }
     const event = await Event.findByPk(req.params.eventId);
