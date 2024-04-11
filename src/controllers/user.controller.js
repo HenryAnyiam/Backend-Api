@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require("../models/user.model");
 const Deanery = require("../models/deanery.model");
 const Parish = require("../models/parish.model");
+const Role = require("../models/role.model");
 const bcrypt = require('bcrypt');
 
 const AUTH_SECRET_KEY = process.env.Token;
@@ -45,8 +46,7 @@ exports.createUser = async (req, res, next) => {
         !lastName ||
         !email ||
         !password ||
-        !phoneNumber ||
-        !roleId
+        !phoneNumber
       ) {
         res.status(400).json({ msg: "All Fields are required" });
       }
@@ -69,7 +69,7 @@ exports.createUser = async (req, res, next) => {
         password: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
         deaneryId,
         parishId,
-        roleId,
+        roleId: roleId || (await Role.findOne({ where: { name: "Member"}})).id,
         picture,
       })
 
@@ -86,6 +86,7 @@ exports.createUser = async (req, res, next) => {
             lastName: user.lastName,
             email: user.email,
             phoneNumber: user.phoneNumber,
+            picture: user.picture,
           }
           if (user.deanery) {
             response.deanery = user.Deanery.name;
