@@ -16,24 +16,15 @@ exports.getEvents = (req, res, next) => {
 exports.createEvent = (req, res, next) => {
   console.log(req.body, "see");
   const { name, description, date, time, venue, deaneryId} = req?.body;
-  let token = req.headers.token;
-  let role = "0";
   if ( name && date ) {
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId) {
-          role = roleId;
-        }
-      } 
-    });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"];
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           let adcId;
           if (!deaneryId) {
             adcId = "Lagos";
@@ -76,4 +67,26 @@ exports.getAdcEvents = (req, res, next) => {
    res.status(200).json(events);
   })
   .catch((err) => res.status(400).json({ msg: "failed", error: err }));
+}
+
+
+exports.updateEvent = async (req, res, next) => {
+  try {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
+      return res.status(401).json({ msg: "Unauthorized Action"});
+    }
+    const event = await Event.findByPk(req.params.eventId);
+    await event.update(req.body);
+    let bannerImage;
+    if (req.file) {
+      bannerImage = req.file.path;
+    }
+    event.bannerImage = bannerImage || event.bannerImage;
+    await event.save();
+    res.status(200).json({ msg: "Updated Successfully", event });
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
 }

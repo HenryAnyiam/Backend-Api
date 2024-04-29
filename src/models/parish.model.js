@@ -24,6 +24,11 @@ const Parish = sequelize.define("Parish", {
   time: {
     type: DataTypes.TIME,
   },
+  hasPaid: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,

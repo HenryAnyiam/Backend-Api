@@ -11,6 +11,8 @@ const parishRoutes = require("./src/routes/parish.routes");
 const deaneryRoutes = require("./src/routes/deanery.routes");
 const eventRoutes = require("./src/routes/event.route");
 const executiveRoutes = require("./src/routes/executive.route");
+const delegateRoutes = require("./src/routes/delegate.route");
+const aydRoutes = require("./src/routes/ayd.routes");
 
 
 const app = express();
@@ -32,6 +34,8 @@ app.use("/api/v1/deanery", deaneryRoutes);
 app.use("/api/v1/parish", parishRoutes);
 app.use("/api/v1/event", eventRoutes);
 app.use("/api/v1/executive", executiveRoutes);
+app.use("/api/v1/delegate", delegateRoutes);
+app.use("/api/v1/ayd", aydRoutes);
 
 sequelize
   .sync({ alter: true })

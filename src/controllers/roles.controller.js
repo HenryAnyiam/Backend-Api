@@ -39,6 +39,6 @@ exports.createRole = (req, res, next) => {
         console.log(err);
       });
   } else {
-    res.status(400).json({ msg: "Bad Request" });
+    return res.status(400).json({ msg: "Bad Request" });
   }
 }

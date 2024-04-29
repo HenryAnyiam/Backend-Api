@@ -1,8 +1,6 @@
 const Deanery = require("../models/deanery.model");
+const Parish = require("../models/parish.model");
 const Role = require("../models/role.model");
-const jwt = require('jsonwebtoken');
-
-const AUTH_SECRET_KEY = process.env.Token;
 
 exports.getDeaneries = (req, res, next) => {
   Deanery.findAll()
@@ -16,71 +14,111 @@ exports.getDeaneries = (req, res, next) => {
 exports.createDeanery = (req, res, next) => {
   const { name, meetingDay, time, email, phoneNumber,
           youtube, facebook, instagram, twitter,} = req?.body;
-  let token = req.headers.token;
   let role = "0";
   if ( email && name ) {
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId) {
-          role = roleId;
-        }
-      } 
-    });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        console.log(roleExists.name)
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin"]
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           Deanery.findOne({
               where: {
                   email,
               },
           })
             .then((emailExists) => {
-                if (emailExists) {
-                    res.status(400).json({ msg: "Email already exists" });
-                  } else {
-                    let banner;
-                    if (req.file) {
-                      banner = req.file.path;
-                    }
-                    Deanery.create({
-                        name,
-                        meetingDay,
-                        time,
-                        email,
-                        phoneNumber,
-                        facebook,
-                        youtube,
-                        instagram,
-                        twitter,
-                        banner,
-                    })
-                      .then((deanery) => {
-                        res.status(200).json(deanery)
-                      })
-                      .catch((err) => {
-                        res.status(400).json({ msg: err.message || "Not created" })
-                      })
-                  }
+              if (emailExists) {
+                  res.status(400).json({ msg: "Email already exists" });
+              } else {
+                let banner;
+                if (req.file) {
+                  banner = req.file.path;
+                }
+                Deanery.create({
+                    name,
+                    meetingDay,
+                    time,
+                    email,
+                    phoneNumber,
+                    facebook,
+                    youtube,
+                    instagram,
+                    twitter,
+                    banner,
+                })
+                  .then((deanery) => {
+                    res.status(200).json(deanery)
+                  })
+                  .catch((err) => {
+                    res.status(400).json({ msg: err.message || "Not created" })
+                  })
+              }
             })
             .catch((err) => {
                 console.log(err);
-              });
-            } else {
-              res.status(403).json({ msg: "Action Not Allowed" });
-            }
-          })
+            });
+        } else {
+          res.status(403).json({ msg: "Action Not Allowed" });
         }
-      }
+    })
+  }
+}
+
+exports.updateDeanery = async (req, res, next) => {
+  try {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
+      return res.status(403).json({ msg: "Unauthorized Action"});
+    }
+    const deanery = await Deanery.findByPk(req.params.deaneryId);
+    await deanery.update(req.body);
+    let banner;
+    if (req.file) {
+      banner = req.file.path;
+    }
+    deanery.banner = banner || deanery.banner;
+    await deanery.save();
+    return res.status(200).json({ msg: "Updated Successfully", deanery});
+  } catch (e) {
+    return res.status(400).json({ msg: e.message });
+  }
+}
+
+
+exports.getDeanery = async (req, res, next) => {
+  try {
+    const deanery = await Deanery.findByPk(
+      req.params.deaneryId,
+      {include: [{
+        model: Parish,
+        attributes: ['id', 'name', 'email', 'location', 'meetingDay', 'time']
+      }]
+    })
+    res.status(200).json(deanery);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
+
+exports.getPaidParishes = async (req, res, next) => {
+  try {
+    const deanery = await Deanery.findByPk(req.params.deaneryId)
+    const parishes = deanery.getParishes({
+      where: { hasPaid: true},
+      attributes: ['id', 'name', 'email', 'location', 'meetingDay', 'time']
+    })
+    res.status(200).json(parishes);
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
 
 
 exports.getParishes = (req, res, next) => {
-  console.log(req.params);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -95,7 +133,7 @@ exports.getParishes = (req, res, next) => {
         'location',
         'meetingDay',
         'time',
-        ],
+      ],
     })
       .then((parishes) => {
         res.status(200).json(parishes);
@@ -105,9 +143,7 @@ exports.getParishes = (req, res, next) => {
   .catch((err) => res.status(400).json({ msg: "failed", error: err }));
 }
 
-
 exports.getUsers = (req, res, next) => {
-  console.log(req.params);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -133,7 +169,6 @@ exports.getUsers = (req, res, next) => {
 
 
 exports.getEvents = (req, res, next) => {
-  console.log(req.params.deaneryId);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId
@@ -151,7 +186,6 @@ exports.getEvents = (req, res, next) => {
 
 
 exports.getExecutives = (req, res, next) => {
-  console.log(req.params.deaneryId);
   Deanery.findOne({
     where: {
       id: req.params.deaneryId

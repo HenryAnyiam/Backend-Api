@@ -14,26 +14,16 @@ exports.getExecutives = (req, res, next) => {
 
 
 exports.createExecutive = (req, res, next) => {
-  console.log(req.body, "see");
   const { name, position, deaneryId} = req?.body;
-  let token = req.headers.token;
-  let role = "0";
   if ( name && position ) {
-    jwt.verify(token, AUTH_SECRET_KEY, (err, decoded) => {
-      if (!(err) && decoded) {
-        const { id, roleId } = decoded;
-        if (roleId) {
-          role = roleId;
-        }
-      } 
-    });
     Role.findOne({
       where: {
-        id: role
+        id: req.user.roleId
       }
     })
       .then((roleExists) => {
-        if (roleExists && roleExists.name !== "Member") {
+        const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+        if (roleExists && allowedRoles.includes(roleExists.name)) {
           let adcId;
           if (!deaneryId) {
             adcId = "Lagos";
@@ -56,14 +46,34 @@ exports.createExecutive = (req, res, next) => {
               res.status(400).json({ msg: err.message || "Not created" })
             })
         } else {
-        res.status(403).json({ msg: "Action Not Allowed" });
+          return res.status(403).json({ msg: "Action Not Allowed" });
       }
     })
   }
 }
 
+exports.updateExecutive = async (req, res, next) => {
+  try {
+    const roleExists = await Role.findByPk(req.user.roleId);
+    const allowedRoles = ["Super Admin", "ADC Admin", "Deanery Admin"]
+    if (!(roleExists || allowedRoles.includes(roleExists.name))) {
+      return res.status(401).json({ msg: "Unauthorized Action"});
+    }
+    const executive = await Executive.findByPk(req.params.executiveId);
+    await executive.update(req.body);
+    let picture;
+    if (req.file) {
+      picture = req.file.path;
+    }
+    executive.picture = picture || executive.picture;
+    await executive.save();
+    res.status(200).json({ msg: "Updated Successfully", executive});
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+}
+
 exports.getAdcExecutives = (req, res, next) => {
-  console.log(req.params);
   Executive.findAll({
     where: {
       adcId: "Lagos"
