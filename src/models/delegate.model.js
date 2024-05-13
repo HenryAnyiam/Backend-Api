@@ -2,8 +2,9 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
 const Parish = require("./parish.model");
 const AYD = require("./ayd.model");
+const Deanery = require("./deanery.model");
 
-  const Delegate = sequelize.define("Delegate", {
+const Delegate = sequelize.define("Delegate", {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -26,7 +27,7 @@ const AYD = require("./ayd.model");
   phoneNumber: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true
+    unique: true,
   },
   aydId: {
     type: DataTypes.UUID,
@@ -35,13 +36,19 @@ const AYD = require("./ayd.model");
   parishId: {
     type: DataTypes.UUID,
     allowNull: false,
-  }
-})
+  },
+  deaneryId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+});
 
-Parish.hasMany(Delegate, { foreignKey: 'parishId' });
-Delegate.belongsTo(Parish, { foreignKey: 'parishId' });
+Parish.hasMany(Delegate, { foreignKey: "parishId" });
+Deanery.hasMany(Delegate, { foreignKey: "deaneryId" });
+Delegate.belongsTo(Parish, { foreignKey: "parishId" });
+Delegate.belongsTo(Deanery, { foreignKey: "deaneryId" });
 
-AYD.hasMany(Delegate, { foreignKey: 'aydId'});
-Delegate.belongsTo(AYD, { foreignKey: 'aydId' });
+AYD.hasMany(Delegate, { foreignKey: "aydId" });
+Delegate.belongsTo(AYD, { foreignKey: "aydId" });
 
 module.exports = Delegate;

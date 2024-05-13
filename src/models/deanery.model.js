@@ -1,7 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db.config");
 
-
 const Deanery = sequelize.define("Deanery", {
   id: {
     type: DataTypes.UUID,
@@ -22,9 +21,6 @@ const Deanery = sequelize.define("Deanery", {
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: true,
-    unique: true,
-    required: true,
   },
   banner: {
     type: DataTypes.STRING,
@@ -34,7 +30,7 @@ const Deanery = sequelize.define("Deanery", {
     type: DataTypes.STRING,
   },
   youtube: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
   },
   instagram: {
     type: DataTypes.STRING,
@@ -43,7 +39,7 @@ const Deanery = sequelize.define("Deanery", {
     type: DataTypes.STRING,
   },
   twitter: {
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
   },
 });
 
