@@ -24,7 +24,7 @@ exports.createDelegate = async (req, res, next) => {
     if (!(lastName && firstName && email && phoneNumber && parishId && aydId)) {
       return res.status(400).json({ msg: "Incomplete Data" });
     }
-    const delegateExist = await Delegate.findOne({ where: { phoneNumber } });
+    const delegateExist = await Delegate.findOne({ where: { phoneNumber, aydId } });
     if (delegateExist) {
       res.status(400).json({ msg: "User already Registered." });
     } else {
